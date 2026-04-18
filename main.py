@@ -25,3 +25,6 @@ class Item(BaseModel):
 @app.post("/items/")
 def create_item(item: Item):
     return {"item": item}
+
+
+Base.metadata.create_all(bind=engine)
