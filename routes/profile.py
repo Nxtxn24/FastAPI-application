@@ -44,3 +44,32 @@ def get_profile(
         raise HTTPException(status_code=404, detail="Profile not found")
 
     return profile
+
+
+
+@router.put("/me")
+def update_profile(
+    profile_update: ProfileUpdate,
+    db: Session = Depends(get_db),
+    current_user: str = Depends(get_current_user)
+):
+    user = db.query(User).filter(User.name == current_user).first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    profile = db.query(Profile).filter(Profile.user_id == user.id).first()
+
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+
+    # Update only fields provided
+    update_data = profile_update.model_dump(exclude_unset=True)
+
+    for key, value in update_data.items():
+        setattr(profile, key, value)
+
+    db.commit()
+    db.refresh(profile)
+
+    return profile
