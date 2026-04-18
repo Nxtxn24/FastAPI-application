@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from routes import user
+from db.database import Base, engine
 
 app = FastAPI()
 
