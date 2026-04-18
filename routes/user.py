@@ -10,6 +10,14 @@ from core.current import get_current_user
 router = APIRouter()
 
 
+@router.get("/me")
+def me(
+    db: Session = Depends(get_db),
+    current_user: str = Depends(get_current_user)
+):
+    user = db.query(User).filter(User.name == current_user).first()
+    return user
+
 @router.get("/")
 def get_all_users(db: Session = Depends(get_db)):
     return db.query(User).all()
@@ -59,6 +67,3 @@ def delete_user(user_id: int, db: Session = Depends(get_db)):
     return {"message": "User deleted"}
 
 
-@router.get("/me")
-def get_users(current_user: str = Depends(get_current_user)):
-    return {"message": f"Hello {current_user}"}

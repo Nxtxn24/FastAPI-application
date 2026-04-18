@@ -4,3 +4,4 @@ env/
 notes.txt
 folderstructure.txt
 test.db
+.env
