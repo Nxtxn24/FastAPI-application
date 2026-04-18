@@ -1,75 +1,53 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from db.database import get_db
-from models.user import User
-from models.profile import ProfileCreate
-from schemas.profile import ProfileCreate
 from core.current import get_current_user
+
+from models.user import User
+from schemas.profile import ProfileCreate, ProfileUpdate, ProfileResponse
+
+from service.profile_service import (
+    get_profile,
+    create_profile,
+    update_profile
+)
 
 router = APIRouter()
 
 
-@router.post("/set_profile")
-def create_profile(
+
+@router.post("/set_profile", response_model=ProfileResponse)
+def create_profile_route(
     profile: ProfileCreate,
     db: Session = Depends(get_db),
     current_user: str = Depends(get_current_user)
 ):
     user = db.query(User).filter(User.name == current_user).first()
 
-    new_profile = Profile(
-        user_id=user.id,
-        name=profile.name,
-        age=profile.age
-    )
-
-    db.add(new_profile)
-    db.commit()
-    db.refresh(new_profile)
-
-    return new_profile
+    return create_profile(db, user, profile)
 
 
-@router.get("/me")
-def get_profile(
+@router.get("/me", response_model=ProfileResponse)
+def get_profile_route(
     db: Session = Depends(get_db),
     current_user: str = Depends(get_current_user)
 ):
     user = db.query(User).filter(User.name == current_user).first()
 
-    profile = db.query(Profile).filter(Profile.user_id == user.id).first()
-
-    if not profile:
-        raise HTTPException(status_code=404, detail="Profile not found")
-
-    return profile
+    return get_profile(db, user)
 
 
-
-@router.put("/me")
-def update_profile(
+@router.patch("/me", response_model=ProfileResponse)
+def update_profile_route(
     profile_update: ProfileUpdate,
     db: Session = Depends(get_db),
     current_user: str = Depends(get_current_user)
 ):
     user = db.query(User).filter(User.name == current_user).first()
 
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+    profile = get_profile(db, user)
 
-    profile = db.query(Profile).filter(Profile.user_id == user.id).first()
-
-    if not profile:
-        raise HTTPException(status_code=404, detail="Profile not found")
-
-    # Update only fields provided
     update_data = profile_update.model_dump(exclude_unset=True)
 
-    for key, value in update_data.items():
-        setattr(profile, key, value)
-
-    db.commit()
-    db.refresh(profile)
-
-    return profile
+    return update_profile(db, profile, update_data)

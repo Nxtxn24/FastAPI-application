@@ -1,7 +1,9 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
 from db.database import Base
+from pydantic import BaseModel
+from typing import Optional
 
-class ProfileCreate(Base):
+class Profile(Base):
     __tablename__ = "profiles"
 
     id = Column(Integer, primary_key=True)
@@ -9,8 +11,3 @@ class ProfileCreate(Base):
     name = Column(String)
     age = Column(Integer, nullable=True)
 
-
-
-class ProfileUpdate(BaseModel):
-    name: Optional[str] = None
-    age: Optional[int] = None
