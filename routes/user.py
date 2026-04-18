@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from db.database import SessionLocal
 from models.user import User
 from schemas.user import UserCreate
+from fastapi import HTTPException
 
 router = APIRouter()
 
@@ -30,30 +31,35 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
 
 @router.get("/{user_id}")
 def get_user(user_id: int, db: Session = Depends(get_db)):
-    return db.query(User).filter(User.id == user_id).first()
+    user = db.query(User).filter(User.id == user_id).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return user
 
 
 @router.put("/{user_id}")
 def update_user(user_id: int, name: str, age: int, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.id == user_id).first()
-    
+
     if not user:
-        return {"error": "User not found"}
-    
+        raise HTTPException(status_code=404, detail="User not found")
+
     user.name = name
     user.age = age
-    
     db.commit()
+
     return user
 
 @router.delete("/{user_id}")
 def delete_user(user_id: int, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.id == user_id).first()
-    
+
     if not user:
-        return {"error": "User not found"}
-    
+        raise HTTPException(status_code=404, detail="User not found")
+
     db.delete(user)
     db.commit()
-    
+
     return {"message": "User deleted"}
