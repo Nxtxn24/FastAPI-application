@@ -4,20 +4,14 @@ from db.database import SessionLocal
 from models.user import User
 from schemas.user import UserCreate
 from fastapi import HTTPException
+from db.database import get_db
+from core.current import get_current_user
 
 router = APIRouter()
 
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
 @router.get("/")
-def get_users(db: Session = Depends(get_db)):
+def get_all_users(db: Session = Depends(get_db)):
     return db.query(User).all()
 
 
@@ -63,3 +57,8 @@ def delete_user(user_id: int, db: Session = Depends(get_db)):
     db.commit()
 
     return {"message": "User deleted"}
+
+
+@router.get("/me")
+def get_users(current_user: str = Depends(get_current_user)):
+    return {"message": f"Hello {current_user}"}
