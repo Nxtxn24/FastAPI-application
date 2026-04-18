@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from typing import Optional
 
 class UserCreate(BaseModel):
     name: str
@@ -7,7 +8,7 @@ class UserCreate(BaseModel):
 class UserResponse(BaseModel):
     id: int
     name: str
-    age: int
+    age: Optional[int]
 
     class Config:
         from_attributes = True
